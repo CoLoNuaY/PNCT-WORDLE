@@ -65,7 +65,9 @@
   <input type="text" id="guessInput" placeholder="พิมพ์ชื่อตัวละคร">
   <button onclick="checkGuess()">เดา</button>
   <button onclick="resetGame()">รีเซ็ตเกม</button>
-  <h1>รายชื่อตัวละคร</h1><br>
+  <div id="result" class="table"></div>
+  <p id="message"></p>
+<h1>รายชื่อตัวละคร</h1><br>
 ภูวฤทธิ์
 
 สมศักดิ์
@@ -195,9 +197,6 @@
 โอลาฟ
 
 ฟาริน
-  <div id="result" class="table"></div>
-  <p id="message"></p>
-
   <script>
       const characters = {
       "ภูวฤทธิ์": ["นักเรียน", "วสส", "เกรียน", "มนุษย์", "เจ้าเล่ห์"],
