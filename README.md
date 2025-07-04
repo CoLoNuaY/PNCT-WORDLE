@@ -1,2 +1,223 @@
-# PNCT-WORDLE
-Description
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เดาชื่อตัวละคร</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #fff;
+      border-radius: 5px;
+      width: 80%;
+      max-width: 300px;
+    }
+    .table {
+      display: inline-block;
+      margin-top: 20px;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+    .row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .cell {
+      width: 100px;
+      padding: 10px;
+      margin: 2px;
+      border: 1px solid #fff;
+      text-align: center;
+      word-wrap: break-word;
+      font-size: 14px;
+    }
+    .correct {
+      background-color: green;
+    }
+    .similar {
+      background-color: goldenrod;
+    }
+    .incorrect {
+      background-color: red;
+    }
+    @media (max-width: 600px) {
+      .cell {
+        width: 80px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>PICNIC CARTOON WORDLE</h1>
+  <input type="text" id="guessInput" placeholder="พิมพ์ชื่อตัวละคร">
+  <button onclick="checkGuess()">เดา</button>
+  <button onclick="resetGame()">รีเซ็ตเกม</button>
+
+  <div id="result" class="table"></div>
+  <p id="message"></p>
+
+  <script>
+      const characters = {
+      "ภูวฤทธิ์": ["นักเรียน", "วสส", "เกรียน", "มนุษย์", "เจ้าเล่ห์"],
+      "สมศักดิ์": ["นักเรียน", "วสส", "ใจดี", "มนุษย์", "ซื่อ"],
+      "อรุณกร": ["นักเรียน", "วสส", "ขี้อาย", "มนุษย์", "ผิดปกติ"],
+      "เจษฎา": ["นักเรียน", "วสส", "จริงจัง", "มนุษย์", "เก่งกาจ"],
+      "คุโรบะ": ["นักเรียน", "วสส", "ชอบช่วยเหลือ", "หุ่นยนต์", "ฉลาด"],
+      "ภีมพิพัฒน์": ["นักเรียน", "วสส", "จริงจัง", "มนุษย์", "ดาวเด่น"],
+      "อุงกะอุงกะ": ["นักเรียน", "วสส", "ซื่อบื้อ", "คนถ้ำ", "แก่"],
+      "ภาษิตา": ["นักเรียน", "วสส", "คลั่งรัก", "มนุษย์", "รวย"],
+      "สันดาน": ["นักเรียน", "วสส", "เกเร", "มนุษย์", "ผิวดำ"],
+      "ประวัติศาสตร์": ["นักเรียน", "วสส", "ซื่อบื้อ", "มนุษย์", "แก่"],
+      "แบงค์": ["นักเรียน", "วสส", "ซื่อบื้อ", "มนุษย์", "ซื่อ"],
+      "ราตรี": ["นักเรียน", "วสส", "มืดมน", "มนุษย์", "มืดมน"],
+      "จันทรา": ["นักเรียน", "วสส", "ปกติ", "อันเดด", "ซื่อ"],
+      "ลิบลิ่ว": ["นักเรียน", "วสส", "เข้มแข็ง", "คนแคระ", "เก่งกาจ"],
+      "หน้ากากขาว": ["นักเรียน", "วสส", "ปกติ", "มนุษย์(?)", "ลูกครึ่ง"],
+      "ปุริโส้สิ้": ["นักเรียน", "วสส", "ปกติ", "มนุษย์", "ปลอมเพศ"],
+      "พิรุณ": ["นักเรียน", "วสส", "ปกติ", "มนุษย์", "แปลงเพศ"],
+      "มานิตย์": ["นักเรียน", "วสส", "ขี้อาย", "มนุษย์", "เป็นนักเวทย์"],
+      "ศรเพชร": ["นักเรียน", "เทวสถาน", "ปกติ", "มนุษย์", "ผิดปกติ"],
+      "วาคิม": ["นักเรียน", "เขาพระสุเมรุ", "มืดมน", "มนุษย์", "เก่งกาจ"],
+      "เรืองศักดิ์": ["นักเรียน", "กรรณสูต", "ใจดี", "มนุษย์", "เล่นเกมเก่ง"],
+      "กฤตรัตน์": ["นักเรียน", "กรรณสูต", "ปกติ", "มนุษย์", "เสียงเอกลักษณ์"],
+      "จิรเมธ": ["นักเรียน", "กรรณสูต", "ซื่อบื้อ", "มนุษย์", "ซื่อ"],
+      "ชานนท์": ["นักเรียน", "กรรณสูต", "ปกติ", "มนุษย์", "ดาวเด่น"],
+      "ลาเต้": ["นักทำเกมกระดาน", "ไม่มี", "ปกติ", "หุ่นยนต์", "แก่"],
+      "มอคค่า": ["นักทำเกมกระดาน", "ไม่มี", "ปกติ", "หุ่นยนต์", "ฉลาด"],
+      "คาปูชิโน่": ["นักทำเกมกระดาน", "ไม่มี", "ปกติ", "หุ่นยนต์", "เก่งกาจ"],
+      "มัคคิอาโต้": ["นักทำเกมกระดาน", "ไม่มี", "ปกติ", "หุ่นยนต์", "แบ่งครึ่ง"],
+      "ชูการ์": ["ผู้ช่วย", "ไม่มี", "ปกติ", "มนุษย์", "ฉลาด"],
+      "ท่านหมายเลข 1": ["บอส", "ไม่มี", "ใจดี", "หุ่นยนต์", "ยิ่งใหญ่"],
+      "ไวโอเลต": ["นักเล่นเกม", "ไม่เปิดเผย", "จริงจัง", "มนุษย์", "คนญี่ปุ่น"],
+      "สมศักดิ์(เมา)": ["นักเรียน", "วสส", "บ้าบอ", "มนุษย์", "ร่าง2"],
+      "มานาซิโอ้": ["นักทำเกมกระดาน", "ไม่มี", "ปกติ", "หุ่นยนต์", "มีพลัง"],
+      "เดลันเต้": ["นักทำเกมกระดาน", "ไม่มี", "เข้มแข็ง", "หุ่นยนต์", "มีพลัง"],
+      "ท่านผู้ถ่ายทอด": ["บอส", "วสส", "ใจดี", "เทพ", "ผอ."],
+      "ไดเมนชั่นแมน": ["ฮีโร่", "ไม่มี", "จริงจัง", "มนุษย์(?)", "ข้ามมิติ"],
+      "แดง": ["ฮีโร่", "ไม่มี", "จริงจัง", "มนุษย์", "แดง"],
+      "ดำ": ["ฮีโร่", "ไม่มี", "เกรียน", "มนุษย์", "ดำ"],
+      "น้ำเงิน": ["ฮีโร่", "ไม่มี", "ปกติ", "มนุษย์", "น้ำเงิน"],
+      "ชมพู": ["ฮีโร่", "ไม่มี", "ปกติ", "มนุษย์", "ชมพู"],
+      "เหลือง": ["ฮีโร่", "ไม่มี", "ปกติ", "มนุษย์", "เหลือง"],
+      "บอลลีวูดแมน": ["ฮีโร่", "ไม่มี", "ปกติ", "มนุษย์", "อินเดีย"],
+      "ราซารัส": ["นักเวทย์", "ไม่มี", "จริงจัง", "มนุษย์", "มีพลังเวทย์"],
+      "ไซฟาเรียส": ["ครู", "วสส", "ปกติ", "มนุษย์", "มีพลังเวทย์"],
+      "ครูวรรลพ": ["ครู", "วสส", "จริงจัง", "มนุษย์", "สอนศิลปะ"],
+      "ครูวรรบวก": ["ครู", "เทวสถาน", "ซื่อบื้อ", "มนุษย์", "ซื่อ"],
+      "การิคการี่": ["นักเวทย์", "ไม่มี", "จริงจัง", "มนุษย์", "มีพลังเวทย์"],
+      "ลีโอน่า": ["ญิน", "ไม่มี", "ขี้เล่น", "ญิน", "มีพลัง"],
+      "อลันตั้น": ["สิ่งของ", "ไม่มี", "ปกติ", "สิ่งของ", "มีพลัง"],
+      "โบ้": ["สัตว์", "ไม่มี", "ปกติ", "สัตว์", "ซื่อ"],
+      "หง่าว": ["สัตว์", "ไม่มี", "เกรียน", "สัตว์", "เจ้าเล่ห์"],
+      "เผือก": ["สัตว์", "ไม่มี", "ซื่อบื้อ", "สัตว์", "ซื่อ"],
+      "เบิร์ด": ["สัตว์", "ไม่มี", "ปกติ", "สัตว์", "โดนแกง"],
+      "ใบตอง": ["สัตว์", "ไม่มี", "ปกติ", "สัตว์", "ล่องหน"],
+      "ปาล์มมี่": ["สัตว์", "ไม่มี", "หื่น", "สัตว์", "บ้า"],
+      "ฤทธิชัย": ["นักเรียน", "เทวสถาน", "เกเร", "มนุษย์", "โดนแกง"],
+      "นายช่างเหล็ก": ["บอส", "ไม่มี", "ไม่รู้", "เทพ", "ลึกลับ"],
+      "โอลิเวอร์": ["บอส", "ไม่มี", "ปกติ", "มนุษย์", "หัวหน้า"],
+      "มัชรูม": ["นักแสดง", "ไม่มี", "ปกติ", "คนแคระ", "เก่งกาจ"],
+      "พูซิโอ้": ["นักแสดง", "ไม่มี", "ปกติ", "มนุษย์", "เจ้าเล่ห์"],
+      "โทมัส": ["นักแสดง", "ไม่มี", "ปกติ", "มนุษย์", "ฝึกสัตว์"],
+      "เฮ็กเตอร์": ["นักแสดง", "ไม่มี", "ปกติ", "มนุษย์", "มีพลังเวทย์"],
+      "โคฮารุ": ["นักแสดง", "ไม่มี", "ปกติ", "มนุษย์", "เก่งกาจ"],
+      "โอลาฟ": ["นักแสดง", "ไม่มี", "ปกติ", "มนุษย์", "แข็งแกร่ง"],
+      "ฟาริน": ["นักแสดง", "ไม่มี", "ปกติ", "มนุษย์", "ใบ้"]
+    };
+
+    const SIMILARITY_GROUPS = [
+      ["มนุษย์", "มนุษย์(?)"],
+      ["จริงจัง", "ปกติ"],
+      ["ฉลาด", "เก่งกาจ"],
+      ["ซื่อ", "ซื่อบื้อ"],
+      ["เทพ", "มีพลังเวทย์"],
+      ["หุ่นยนต์", "ลูกครึ่ง"],
+      ["บ้าบอ", "เกรียน"],
+      ["อันเดด", "ผิดปกติ"]
+    ];
+
+    let characterNames = Object.keys(characters);
+    let answerName = characterNames[Math.floor(Math.random() * characterNames.length)];
+    let tries = 0;
+    const maxTries = 5;
+
+    function findSimilarity(a, b) {
+      if (a === b) return "correct";
+      for (const group of SIMILARITY_GROUPS) {
+        if (group.includes(a) && group.includes(b)) return "similar";
+      }
+      return "incorrect";
+    }
+
+    function checkGuess() {
+      const guess = document.getElementById("guessInput").value.trim();
+      const resultDiv = document.getElementById("result");
+      const msg = document.getElementById("message");
+
+      if (!(guess in characters)) {
+        msg.innerText = "❌ ไม่พบบุคคลนี้ในระบบ";
+        return;
+      }
+
+      tries++;
+      const guessData = characters[guess];
+      const answerData = characters[answerName];
+
+      const row = document.createElement("div");
+      row.className = "row";
+
+      let correctCount = 0;
+
+      for (let i = 0; i < 5; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.textContent = guessData[i];
+
+        const comparison = findSimilarity(guessData[i], answerData[i]);
+        cell.classList.add(comparison);
+        if (comparison === "correct") correctCount++;
+
+        row.appendChild(cell);
+      }
+
+      resultDiv.appendChild(row);
+
+      if (guess === answerName || correctCount === 5) {
+        msg.innerText = "ถูกต้อง! คุณชนะแล้ว";
+        document.getElementById("guessInput").disabled = true;
+        return;
+      }
+
+      if (tries >= maxTries) {
+        msg.innerText = `คุณแพ้! คำตอบคือ: ${answerName}`;
+        document.getElementById("guessInput").disabled = true;
+      } else {
+        msg.innerText = `เหลืออีก ${maxTries - tries} ครั้ง`;
+      }
+    }
+
+    function resetGame() {
+      characterNames = Object.keys(characters);
+      answerName = characterNames[Math.floor(Math.random() * characterNames.length)];
+      tries = 0;
+      document.getElementById("result").innerHTML = "";
+      document.getElementById("message").innerText = "";
+      document.getElementById("guessInput").value = "";
+      document.getElementById("guessInput").disabled = false;
+    }
+  </script>
+</body>
+</html>
