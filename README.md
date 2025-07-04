@@ -66,7 +66,7 @@
   <button onclick="checkGuess()">เดา</button>
   <button onclick="resetGame()">รีเซ็ตเกม</button>
   <div id="result" class="table"></div>
-  <p id="message"></p>
+  <p id="message"></p><br>
 <h1>รายชื่อตัวละคร</h1><br>
 ภูวฤทธิ์
 
